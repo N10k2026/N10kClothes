@@ -3,11 +3,8 @@
 import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Zap } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { gsap, ScrollTrigger } from '@/lib/gsap-init';
 import Image from 'next/image';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);

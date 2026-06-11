@@ -7,10 +7,7 @@ import { Heart, ShoppingBag, ArrowRight, Loader2, AlertCircle, RefreshCw } from 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useMouseGlow } from '@/hooks/use-scroll-animation';
 import { SplitWords, BlurIn } from '@/components/n10k/TextAnimations';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { gsap, ScrollTrigger } from '@/lib/gsap-init';
 
 export default function ProductGrid() {
   const [activeCategory, setActiveCategory] = useState('Todos');
@@ -328,7 +325,7 @@ function ProductCard({
           <button
             className={`absolute top-2 right-2 sm:top-3 sm:right-3 z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
               isWished
-                ? 'bg-[#E30613] text-white shadow-lg shadow-[#E30613]/40'
+                ? 'bg-black/50 backdrop-blur-sm text-[#E30613] shadow-lg shadow-[#E30613]/30'
                 : 'bg-black/40 backdrop-blur-sm text-white/60 hover:bg-black/60 hover:text-white'
             }`}
             onClick={(e) => {
@@ -344,7 +341,7 @@ function ProductCard({
               <span className="absolute inset-0 rounded-full border-2 border-[#E30613] heart-burst-ring" />
             )}
             <Heart
-              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 transition-transform ${isWished ? 'fill-current' : ''} ${heartAnimating ? 'heart-animate' : ''}`}
+              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 transition-all duration-300 ${isWished ? 'fill-[#E30613] text-[#E30613]' : ''} ${heartAnimating ? 'heart-animate' : ''}`}
             />
           </button>
 
@@ -515,7 +512,7 @@ function ColorProductCard({
           <button
             className={`absolute top-2 right-2 sm:top-3 sm:right-3 z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
               isWished
-                ? 'bg-[#E30613] text-white shadow-lg shadow-[#E30613]/40'
+                ? 'bg-black/50 backdrop-blur-sm text-[#E30613] shadow-lg shadow-[#E30613]/30'
                 : 'bg-black/40 backdrop-blur-sm text-white/60 hover:bg-black/60 hover:text-white'
             }`}
             onClick={(e) => {
@@ -530,7 +527,7 @@ function ColorProductCard({
               <span className="absolute inset-0 rounded-full border-2 border-[#E30613] heart-burst-ring" />
             )}
             <Heart
-              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 transition-transform ${isWished ? 'fill-current' : ''} ${heartAnimating ? 'heart-animate' : ''}`}
+              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 transition-all duration-300 ${isWished ? 'fill-[#E30613] text-[#E30613]' : ''} ${heartAnimating ? 'heart-animate' : ''}`}
             />
           </button>
 

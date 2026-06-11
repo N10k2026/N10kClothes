@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useCartStore, selectTotalItems } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Minus, Plus, ShoppingBag, Trash2, ArrowRight, MessageCircle } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Trash2, MessageCircle } from 'lucide-react';
 
 const CartSidebar = function CartSidebar() {
   // Zustand selectors — subscribe only to what we need
@@ -18,7 +18,7 @@ const CartSidebar = function CartSidebar() {
 
   // Derived selector for totalItems (PERF-9)
   const totalItems = useCartStore(selectTotalItems);
-  const totalPrice = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const totalPrice = useMemo(() => items.reduce((sum, i) => sum + i.product.price * i.quantity, 0), [items]);
   const shipping = totalPrice > 50 ? 0 : 4.99;
   const finalTotal = totalPrice + shipping;
 
@@ -26,7 +26,7 @@ const CartSidebar = function CartSidebar() {
   const WHATSAPP_NUMBER = '584122880228';
 
   // Build WhatsApp message from cart
-  const buildWhatsAppMessage = () => {
+  const buildWhatsAppMessage = useCallback(() => {
     const lines = items.map((item, i) => {
       const subtotal = (item.product.price * item.quantity).toFixed(2);
       return `${i + 1}. *${item.product.name}*\n   Talla: ${item.selectedSize} | Color: ${item.selectedColor}\n   Cant: ${item.quantity} x $${item.product.price.toFixed(2)} = *$${subtotal}*`;
@@ -48,12 +48,12 @@ const CartSidebar = function CartSidebar() {
     ].join('\n');
 
     return encodeURIComponent(message);
-  };
+  }, [items, totalPrice, shipping, finalTotal]);
 
-  const handleWhatsAppCheckout = () => {
+  const handleWhatsAppCheckout = useCallback(() => {
     const message = buildWhatsAppMessage();
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-  };
+  }, [buildWhatsAppMessage]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>

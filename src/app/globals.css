@@ -119,35 +119,6 @@
    Strong, bold, eye-catching text styles
    ======================================== */
 
-/* DISPLAY: Títulos principales, hero, secciones destacadas
-   Montserrat Black (900) / ExtraBold (800)
-   Uppercase con tracking amplio, line-height compacto */
-.font-display {
-  font-family: var(--font-display), 'Montserrat', sans-serif;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1;
-  font-stretch: normal;
-}
-
-/* BODY: Texto de cuerpo, descripciones, párrafos
-   Montserrat SemiBold (600) / Medium (500) */
-.font-body {
-  font-family: var(--font-body), 'Montserrat', sans-serif;
-  font-weight: 500;
-  line-height: 1.65;
-  letter-spacing: 0.01em;
-}
-
-/* MONO: Tags, labels, precios, badges
-   Montserrat Bold (700) con tracking apretado */
-.font-mono {
-  font-family: var(--font-mono), 'Montserrat', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
 /* ===== MONTSEerrat WEIGHT VARIANTS ===== */
 
 /* Medium — para cuerpo de texto destacado */
@@ -955,45 +926,6 @@ body.is-loading {
   }
 }
 
-/* Red version of pro glass card for red backgrounds */
-.glass-card-pro-red {
-  background: linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.1) 100%);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 24px;
-  position: relative;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card-pro-red::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 40%, transparent 60%, rgba(255,255,255,0.1));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-@media (hover: hover) {
-  .glass-card-pro-red:hover {
-    border-color: rgba(255,255,255,0.25);
-    box-shadow:
-      0 30px 60px rgba(0,0,0,0.4),
-      0 0 40px rgba(255,255,255,0.05),
-      inset 0 1px 0 rgba(255,255,255,0.1);
-    transform: translateY(-6px) scale(1.01);
-  }
-  .glass-card-pro-red:hover::before {
-    background: linear-gradient(135deg, rgba(255,255,255,0.4), transparent 40%, transparent 60%, rgba(255,255,255,0.2));
-  }
-}
-
 /* ========================================
    ANIMATED GRADIENT TEXT
    ======================================== */
@@ -1011,15 +943,6 @@ body.is-loading {
   0% { background-position: 0% center; }
   50% { background-position: 100% center; }
   100% { background-position: 0% center; }
-}
-
-.text-gradient-white {
-  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, #ffffff 50%, rgba(255,255,255,0.6) 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 4s ease infinite;
 }
 
 /* ========================================
@@ -1120,11 +1043,7 @@ body.is-loading {
 /* Reduced motion: disable new animations */
 @media (prefers-reduced-motion: reduce) {
   .glass-card-pro::before,
-  .glass-card-pro-red::before {
-    animation: none !important;
-  }
-  .text-gradient-red,
-  .text-gradient-white {
+  .text-gradient-red {
     animation: none !important;
   }
   .badge-pulse::after {

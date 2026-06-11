@@ -23,7 +23,7 @@ export default function ProductDetail() {
   const [showDescription, setShowDescription] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const handleOpen = (open: boolean) => {
+  const handleOpen = useCallback((open: boolean) => {
     setDetailOpen(open);
     if (open && selectedProduct) {
       setSelectedSize(selectedProduct.sizes[0]);
@@ -32,7 +32,7 @@ export default function ProductDetail() {
       setActiveImageIndex(0);
       setShowDescription(false);
     }
-  };
+  }, [setDetailOpen, selectedProduct]);
 
   // When the detail opens or preselectedColor changes, set the active color
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function ProductDetail() {
     }
   }, [isDetailOpen, selectedProduct, preselectedColor]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
     if (!selectedProduct || !selectedSize || !selectedColor) return;
     addItem({
       product: selectedProduct,
@@ -50,7 +50,7 @@ export default function ProductDetail() {
       selectedColor,
     });
     setDetailOpen(false);
-  };
+  }, [selectedProduct, selectedSize, selectedColor, quantity, addItem, setDetailOpen]);
 
   // Long press handlers for description overlay
   const handleTouchStart = useCallback(() => {
@@ -113,7 +113,7 @@ export default function ProductDetail() {
 
   if (!selectedProduct) return null;
 
-  const isWished = wishlist.some((w) => w.productId === selectedProduct.id && w.colorName === selectedColor);
+  const isWished = selectedProduct ? wishlist.some((w) => w.productId === selectedProduct.id && w.colorName === selectedColor) : false;
 
   return (
     <Dialog open={isDetailOpen} onOpenChange={handleOpen}>
@@ -136,7 +136,7 @@ export default function ProductDetail() {
             <button
               className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
                 isWished
-                  ? 'bg-[#E30613] text-white shadow-lg shadow-[#E30613]/40'
+                  ? 'bg-white/5 border border-[#E30613]/40 text-[#E30613] shadow-lg shadow-[#E30613]/30'
                   : 'bg-white/5 border border-white/10 text-white/40 hover:text-[#E30613] hover:border-[#E30613]/30'
               }`}
               onClick={(e) => {
@@ -150,7 +150,7 @@ export default function ProductDetail() {
               {heartAnimating && isWished && (
                 <span className="absolute inset-0 rounded-full border-2 border-[#E30613] heart-burst-ring" />
               )}
-              <Heart className={`h-4 w-4 transition-transform ${isWished ? 'fill-current' : ''} ${heartAnimating ? 'heart-animate' : ''}`} />
+              <Heart className={`h-4 w-4 transition-all duration-300 ${isWished ? 'fill-[#E30613] text-[#E30613]' : ''} ${heartAnimating ? 'heart-animate' : ''}`} />
             </button>
             <button
               onClick={() => setDetailOpen(false)}
@@ -371,21 +371,21 @@ export default function ProductDetail() {
                 <button
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
                     isWished
-                      ? 'bg-[#E30613] text-white shadow-lg shadow-[#E30613]/40'
+                      ? 'bg-white/5 border border-[#E30613]/40 text-[#E30613] shadow-lg shadow-[#E30613]/30'
                       : 'bg-white/5 border border-white/10 text-white/40 hover:text-[#E30613] hover:border-[#E30613]/30'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleWishlistItem(selectedProduct.id, selectedColor);
                     setHeartAnimating(true);
-                    setTimeout(() => setHeartAnimating(false), 500);
+                    setTimeout(() => setHeartAnimating(false), 700);
                   }}
                   aria-label={isWished ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                 >
                   {heartAnimating && isWished && (
                     <span className="absolute inset-0 rounded-full border-2 border-[#E30613] heart-burst-ring" />
                   )}
-                  <Heart className={`h-5 w-5 transition-transform ${isWished ? 'fill-current' : ''} ${heartAnimating ? 'heart-animate' : ''}`} />
+                  <Heart className={`h-5 w-5 transition-all duration-300 ${isWished ? 'fill-[#E30613] text-[#E30613]' : ''} ${heartAnimating ? 'heart-animate' : ''}`} />
                 </button>
                 <button
                   onClick={() => setDetailOpen(false)}

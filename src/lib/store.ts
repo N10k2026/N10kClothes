@@ -63,7 +63,6 @@ interface CartStore {
   toggleWishlistItem: (productId: string, colorName: string) => void;
   removeWishlistItem: (productId: string, colorName: string) => void;
   clearWishlist: () => void;
-  isInWishlist: (productId: string, colorName: string) => boolean;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -146,7 +145,6 @@ export const useCartStore = create<CartStore>((set, get) => ({
     set({ wishlist: get().wishlist.filter((w) => !(w.productId === productId && w.colorName === colorName)) });
   },
   clearWishlist: () => set({ wishlist: [] }),
-  isInWishlist: (productId, colorName) => get().wishlist.some((w) => w.productId === productId && w.colorName === colorName),
   fetchProducts: async () => {
     const state = get();
     if (state.productsStatus === 'success' || fetchInProgress) return; // Already loaded or in progress
