@@ -4,10 +4,7 @@ import { useRef, useEffect } from 'react';
 import { Flame, Target, Zap, Heart } from 'lucide-react';
 import Image from 'next/image';
 import { SplitChars, SplitWords, BlurIn } from '@/components/n10k/TextAnimations';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { gsap, ScrollTrigger } from '@/lib/gsap-init';
 
 export default function AboutSection() {
   const sectionRef = useRef<HTMLElement>(null);

@@ -3,10 +3,7 @@
 import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { gsap, ScrollTrigger } from '@/lib/gsap-init';
 
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);

@@ -10,7 +10,6 @@ import Image from 'next/image';
 
 export default function Header() {
   // Zustand selectors — subscribe only to what we need
-  const items = useCartStore((state) => state.items);
   const setOpen = useCartStore((state) => state.setOpen);
   const wishlist = useCartStore((state) => state.wishlist);
   const setWishlistOpen = useCartStore((state) => state.setWishlistOpen);

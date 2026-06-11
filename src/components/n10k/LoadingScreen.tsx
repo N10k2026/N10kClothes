@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
-import gsap from 'gsap';
+import { gsap } from '@/lib/gsap-init';
 
 export default function LoadingScreen() {
   const containerRef = useRef<HTMLDivElement>(null);

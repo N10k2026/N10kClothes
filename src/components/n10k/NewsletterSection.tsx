@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Instagram, MessageCircle } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { SplitChars, BlurFadeUp, BlurIn } from '@/components/n10k/TextAnimations';
-import Plasma from '@/components/n10k/Plasma';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { gsap, ScrollTrigger } from '@/lib/gsap-init';
 
-gsap.registerPlugin(ScrollTrigger);
+// Lazy-load Plasma WebGL component — ~30KB saved from initial bundle
+const Plasma = dynamic(() => import('@/components/n10k/Plasma'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function NewsletterSection() {
   const cardRef = useRef<HTMLDivElement>(null);

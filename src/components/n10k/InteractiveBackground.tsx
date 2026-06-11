@@ -123,26 +123,16 @@ export default function InteractiveBackground() {
         />
       </div>
 
-      {/* Secondary layer — same image with CSS offset parallax (no duplicate load) */}
+      {/* Secondary layer — lightweight CSS gradient parallax (replaces heavy blurred image) */}
       <div
         ref={layer2Ref}
         className="absolute inset-0"
         style={{
           willChange: 'transform',
+          background: 'radial-gradient(ellipse at 50% 50%, rgba(227,6,19,0.04) 0%, transparent 60%)',
+          mixBlendMode: 'overlay',
         }}
-      >
-        {/* Reuse the same image with a different filter; browsers cache by URL */}
-        <img
-          src="/brand/bg-n10k.webp"
-          alt=""
-          className="w-full h-full object-cover mix-blend-overlay"
-          loading="eager"
-          style={{
-            filter: 'blur(8px) brightness(0.15) saturate(1.8) hue-rotate(5deg)',
-            opacity: 0.5,
-          }}
-        />
-      </div>
+      />
 
       {/* Mouse-following red glow */}
       <div

@@ -23,7 +23,15 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 export default function AuthModal() {
-  const { isAuthModalOpen, setAuthModalOpen, authMode, setAuthMode, user, login, register, logout, updateProfile } = useAuthStore();
+  const isAuthModalOpen = useAuthStore((s) => s.isAuthModalOpen);
+  const setAuthModalOpen = useAuthStore((s) => s.setAuthModalOpen);
+  const authMode = useAuthStore((s) => s.authMode);
+  const setAuthMode = useAuthStore((s) => s.setAuthMode);
+  const user = useAuthStore((s) => s.user);
+  const login = useAuthStore((s) => s.login);
+  const register = useAuthStore((s) => s.register);
+  const logout = useAuthStore((s) => s.logout);
+  const updateProfile = useAuthStore((s) => s.updateProfile);
 
   return (
     <Dialog open={isAuthModalOpen} onOpenChange={setAuthModalOpen}>
