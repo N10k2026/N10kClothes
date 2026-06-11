@@ -1,0 +1,80 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# testing
+coverage/
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+db/*.db
+db/*.db-journal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# tool results (temp)
+tool-results/
+
+# dev log
+dev.log
+
+# agent context
+agent-ctx/
+
+# skills (not part of the app)
+skills/
+
+# examples (not part of the app)
+examples/
+
+# keep-alive script
+keep-alive.sh
+
+# Caddy config (deployment specific)
+Caddyfile
+
+# screenshots (temp)
+*.png
+!public/**/*.png
+
+# download folder (temp)
+download/
+
+# bun
+bun.lock
+
+# worklog (development artifact)
+worklog.md

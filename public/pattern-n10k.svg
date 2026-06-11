@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+  <!-- N10K Chevron Pattern Tile -->
+  <!-- Stylized downward chevron/N-shape repeating tile -->
+  <path d="M15 5 L25 5 L25 20 L35 5 L45 5 L45 55 L35 55 L35 40 L25 55 L15 55 Z" 
+        fill="white" fill-opacity="0.12"/>
+</svg>
