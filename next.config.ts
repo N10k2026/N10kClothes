@@ -11,11 +11,6 @@ const nextConfig: NextConfig = {
   // Production optimizations
   poweredByHeader: false,
   compress: true,
-  // Allow preview panel cross-origin requests
-  allowedDevOrigins: [
-    '.space-z.ai',
-    'preview-chat-74dbc56d-4ece-4b21-8aaf-46e532a4d0fb.space-z.ai',
-  ],
   // Security & performance headers
   async headers() {
     return [
@@ -29,14 +24,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Cache static assets aggressively
         source: '/brand/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
-        // Cache product images
         source: '/products/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },

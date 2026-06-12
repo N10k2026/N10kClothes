@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { gsap } from '@/lib/gsap-init';
 
@@ -12,6 +12,31 @@ export default function LoadingScreen() {
   const percentRef = useRef<HTMLSpanElement>(null);
   const cornersRef = useRef<HTMLDivElement[]>([]);
   const scanRef = useRef<HTMLDivElement>(null);
+
+  const revealScreen = useCallback(() => {
+    if (!containerRef.current) return;
+
+    // Unlock scroll
+    document.body.classList.remove('is-loading');
+
+    const revealTl = gsap.timeline({
+      onComplete: () => {
+        // Remove loading screen from DOM
+        if (containerRef.current) {
+          containerRef.current.style.display = 'none';
+        }
+      },
+    });
+
+    revealTl
+      .to(containerRef.current, {
+        autoAlpha: 0,
+        scale: 1.05,
+        duration: 0.7,
+        ease: 'power3.inOut',
+      })
+      .set(containerRef.current, { pointerEvents: 'none' }, 0);
+  }, []);
 
   // Lock body scroll while loading
   useEffect(() => {
@@ -124,32 +149,7 @@ export default function LoadingScreen() {
       glowTween.kill();
       tl.kill();
     };
-  }, []);
-
-  const revealScreen = () => {
-    if (!containerRef.current) return;
-
-    // Unlock scroll
-    document.body.classList.remove('is-loading');
-
-    const revealTl = gsap.timeline({
-      onComplete: () => {
-        // Remove loading screen from DOM
-        if (containerRef.current) {
-          containerRef.current.style.display = 'none';
-        }
-      },
-    });
-
-    revealTl
-      .to(containerRef.current, {
-        autoAlpha: 0,
-        scale: 1.05,
-        duration: 0.7,
-        ease: 'power3.inOut',
-      })
-      .set(containerRef.current, { pointerEvents: 'none' }, 0);
-  };
+  }, [revealScreen]);
 
   return (
     <div
