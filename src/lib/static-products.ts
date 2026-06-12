@@ -120,12 +120,8 @@ export const staticProducts: StaticProduct[] = [
     images: [
       '/products/hoddie-vinotinto.webp',
       '/products/hoddie-vinotinto-2.webp',
-      '/products/modelo-vinotinto-2.webp',
-      '/products/modelo-vinotinto-3.webp',
-      '/products/modelo-vinotinto-4.webp',
       '/products/hoddie-negro.webp',
       '/products/hoddie-negro-2.webp',
-      '/products/modelo-negro-2.webp',
       '/products/hoddie-marron.webp',
       '/products/hoddie-marron-2.webp',
       '/products/hoddie-blanco.webp',
@@ -135,14 +131,10 @@ export const staticProducts: StaticProduct[] = [
       'Vinotinto': [
         '/products/hoddie-vinotinto.webp',
         '/products/hoddie-vinotinto-2.webp',
-        '/products/modelo-vinotinto-2.webp',
-        '/products/modelo-vinotinto-3.webp',
-        '/products/modelo-vinotinto-4.webp',
       ],
       'Negro': [
         '/products/hoddie-negro.webp',
         '/products/hoddie-negro-2.webp',
-        '/products/modelo-negro-2.webp',
       ],
       'Marrón': [
         '/products/hoddie-marron.webp',
