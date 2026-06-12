@@ -47,7 +47,7 @@ export default function Home() {
             />
             <Marquee
               texts={['N10K', 'CABALLERO', 'LIMITLESS']}
-              speed={28}
+              speed={80}
               separator="✦"
             />
           </section>
@@ -59,7 +59,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-r from-[#E30613]/5 via-transparent to-[#E30613]/5 pointer-events-none" />
             <Marquee
               texts={['N10K', 'ROPA MASCULINA', 'STYLE']}
-              speed={24}
+              speed={70}
               reverse
               separator="◆"
             />

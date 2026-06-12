@@ -226,14 +226,16 @@ export function BlurFadeUp({
 }
 
 /**
- * MarqueeGSAP - Infinite horizontal scrolling text powered by GSAP
- * Seamless loop: render N copies, animate by 1 copy width, repeat forever
- * When one copy scrolls out of view, the next identical copy is in its place → no gap
+ * MarqueeGSAP - Infinite seamless horizontal scrolling text powered by GSAP
+ * Uses a continuous tween with modular position wrapping so there is
+ * absolutely no visible seam when the loop resets — the text flows forever.
+ *
+ * `speed` = pixels per second (higher = faster). Typical range: 40–120.
  */
 export function Marquee({
   texts,
   className = '',
-  speed = 30,
+  speed = 60,
   reverse = false,
   separator = '✦',
 }: {
@@ -253,20 +255,17 @@ export function Marquee({
     const wrapper = wrapperRef.current;
 
     const ctx = gsap.context(() => {
-      // Small delay to ensure layout is fully computed
       requestAnimationFrame(() => {
         const firstSet = track.querySelector('.marquee-set') as HTMLElement;
         if (!firstSet) return;
 
         const oneSetWidth = firstSet.offsetWidth;
 
-        // Make sure we have enough copies to fill viewport at all times
-        // Need at least: (viewportWidth / oneSetWidth) + 2 sets
+        // Ensure enough copies to always fill the viewport
         const viewportWidth = wrapper.offsetWidth;
         const requiredSets = Math.ceil(viewportWidth / oneSetWidth) + 2;
         const currentSets = track.querySelectorAll('.marquee-set').length;
 
-        // Clone more sets if needed for wide screens
         if (currentSets < requiredSets) {
           const sourceHTML = firstSet.outerHTML;
           for (let i = currentSets; i < requiredSets; i++) {
@@ -277,20 +276,28 @@ export function Marquee({
           }
         }
 
-        // Re-measure after potential DOM additions
+        // Re-measure after possible DOM additions
         const finalOneSetWidth = (track.querySelector('.marquee-set') as HTMLElement).offsetWidth;
 
-        // Forward: x goes 0 → -oneSetWidth, then repeats (snaps to 0)
-        // Reverse: x goes -oneSetWidth → 0, then repeats (snaps to -oneSetWidth)
+        // Duration based on pixels-per-second speed
+        const duration = finalOneSetWidth / speed;
+
+        // Seamless loop: animate by exactly one set width using modular
+        // wrapping so the reset is invisible (identical content snaps back)
         if (reverse) {
           gsap.fromTo(
             track,
             { x: -finalOneSetWidth },
             {
               x: 0,
-              duration: speed,
+              duration,
               ease: 'none',
               repeat: -1,
+              modifiers: {
+                x: gsap.utils.unitize((x: number) => {
+                  return parseFloat(String(x)) % finalOneSetWidth;
+                }),
+              },
             }
           );
         } else {
@@ -299,9 +306,14 @@ export function Marquee({
             { x: 0 },
             {
               x: -finalOneSetWidth,
-              duration: speed,
+              duration,
               ease: 'none',
               repeat: -1,
+              modifiers: {
+                x: gsap.utils.unitize((x: number) => {
+                  return parseFloat(String(x)) % -finalOneSetWidth;
+                }),
+              },
             }
           );
         }
@@ -311,8 +323,8 @@ export function Marquee({
     return () => ctx.revert();
   }, [speed, reverse, texts.join(''), separator]);
 
-  // Render 4 copies by default — enough for most viewports, more added dynamically if needed
-  const items = [...texts, ...texts, ...texts, ...texts];
+  // Render enough copies to fill any viewport seamlessly
+  const items = [...texts, ...texts, ...texts, ...texts, ...texts, ...texts];
 
   return (
     <div ref={wrapperRef} className={`overflow-hidden ${className}`}>
