@@ -4,7 +4,7 @@ import { useCartStore, Product } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { X, ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Play, ImageIcon } from 'lucide-react';
+import { X, ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 export default function ProductDetail() {
@@ -20,9 +20,9 @@ export default function ProductDetail() {
   const [userSelectedColor, setUserSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [heartAnimating, setHeartAnimating] = useState(false);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  // activeSlideIndex: -1 = video, 0+ = image index in currentImages
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [showDescription, setShowDescription] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
   const detailVideoRef = useRef<HTMLVideoElement>(null);
   const detailVideoRefMobile = useRef<HTMLVideoElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -36,6 +36,21 @@ export default function ProductDetail() {
   const selectedSize = userSelectedSize ?? defaultSize;
   const selectedColor = userSelectedColor ?? defaultColor;
 
+  // Whether current product has a video
+  const hasVideo = !!selectedProduct?.video;
+  // Whether we are currently showing the video slide
+  const showingVideo = activeSlideIndex === -1 && hasVideo;
+
+  // Total slides: video (if exists) + images
+  const totalSlides = useMemo(() => {
+    const imgCount = selectedProduct ? (
+      selectedProduct.colorImages && selectedColor && selectedProduct.colorImages[selectedColor]
+        ? selectedProduct.colorImages[selectedColor].length
+        : (selectedProduct.images.length > 0 ? selectedProduct.images.length : 1)
+    ) : 0;
+    return (hasVideo ? 1 : 0) + imgCount;
+  }, [selectedProduct, selectedColor, hasVideo]);
+
   // Reset user selections when a new product dialog opens
   const currentProductId = isDetailOpen ? selectedProduct?.id ?? null : null;
   if (currentProductId !== openedProductId) {
@@ -45,31 +60,36 @@ export default function ProductDetail() {
       setUserSelectedColor(null);
       setQuantity(1);
       setHeartAnimating(false);
-      setActiveImageIndex(0);
+      // Auto-select video slide if product has one, otherwise first image
+      setActiveSlideIndex(selectedProduct?.video ? -1 : 0);
       setShowDescription(false);
-      // Auto-play video if the product has one
-      setShowVideo(!!selectedProduct?.video);
     }
   }
 
-  // Auto-play video when showing in detail, pause when hiding
+  // Auto-play video when video slide is active, pause when switching away
   useEffect(() => {
-    if (!showVideo || !isDetailOpen) return;
-    // Small delay to ensure Dialog animation completes and video element is mounted
-    const timer = setTimeout(() => {
+    if (showingVideo && isDetailOpen) {
+      const timer = setTimeout(() => {
+        const videoEl = detailVideoRef.current;
+        const videoElMobile = detailVideoRefMobile.current;
+        if (videoEl) videoEl.play().catch(() => {});
+        if (videoElMobile) videoElMobile.play().catch(() => {});
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        const videoEl = detailVideoRef.current;
+        const videoElMobile = detailVideoRefMobile.current;
+        if (videoEl) { videoEl.pause(); videoEl.currentTime = 0; }
+        if (videoElMobile) { videoElMobile.pause(); videoElMobile.currentTime = 0; }
+      };
+    } else {
+      // Pause videos when not on video slide
       const videoEl = detailVideoRef.current;
       const videoElMobile = detailVideoRefMobile.current;
-      if (videoEl) videoEl.play().catch(() => {});
-      if (videoElMobile) videoElMobile.play().catch(() => {});
-    }, 100);
-    return () => {
-      clearTimeout(timer);
-      const videoEl = detailVideoRef.current;
-      const videoElMobile = detailVideoRefMobile.current;
-      if (videoEl) { videoEl.pause(); videoEl.currentTime = 0; }
-      if (videoElMobile) { videoElMobile.pause(); videoElMobile.currentTime = 0; }
-    };
-  }, [showVideo, isDetailOpen]);
+      if (videoEl) { videoEl.pause(); }
+      if (videoElMobile) { videoElMobile.pause(); }
+    }
+  }, [showingVideo, isDetailOpen]);
 
   const handleAddToCart = useCallback(() => {
     if (!selectedProduct || !selectedSize || !selectedColor) return;
@@ -120,21 +140,52 @@ export default function ProductDetail() {
     return selectedProduct.images.length > 0 ? selectedProduct.images : [selectedProduct.image];
   }, [selectedProduct, selectedColor]);
 
-  // Reset image index when color changes
+  // Convert slide index to image index (slide -1 = video, slide 0+ = image at that index if no video, or image at slide index if video exists)
+  const imageIndex = hasVideo ? activeSlideIndex : activeSlideIndex;
+
+  // Reset slide index when color changes — go to first image
   const handleColorChange = (color: string) => {
     setUserSelectedColor(color);
-    setActiveImageIndex(0);
+    setActiveSlideIndex(0); // First image (not video)
+  };
+
+  // Navigate between slides (video + images)
+  const navigateSlide = (direction: 'prev' | 'next') => {
+    if (totalSlides <= 1) return;
+    if (hasVideo) {
+      // Slides: -1 (video), 0, 1, 2, ... (images)
+      if (direction === 'prev') {
+        setActiveSlideIndex((prev) => {
+          if (prev === -1) return currentImages.length - 1; // video → last image
+          if (prev === 0) return -1; // first image → video
+          return prev - 1;
+        });
+      } else {
+        setActiveSlideIndex((prev) => {
+          if (prev === -1) return 0; // video → first image
+          if (prev === currentImages.length - 1) return -1; // last image → video
+          return prev + 1;
+        });
+      }
+    } else {
+      // No video, just cycle through images
+      if (direction === 'prev') {
+        setActiveSlideIndex((prev) => (prev > 0 ? prev - 1 : currentImages.length - 1));
+      } else {
+        setActiveSlideIndex((prev) => (prev < currentImages.length - 1 ? prev + 1 : 0));
+      }
+    }
   };
 
   // Keyboard navigation for gallery
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!selectedProduct || !isDetailOpen) return;
     if (e.key === 'ArrowLeft') {
-      setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : currentImages.length - 1));
+      navigateSlide('prev');
     } else if (e.key === 'ArrowRight') {
-      setActiveImageIndex((prev) => (prev < currentImages.length - 1 ? prev + 1 : 0));
+      navigateSlide('next');
     }
-  }, [selectedProduct, isDetailOpen, currentImages.length]);
+  }, [selectedProduct, isDetailOpen, totalSlides, currentImages.length, hasVideo]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -144,6 +195,11 @@ export default function ProductDetail() {
   if (!selectedProduct) return null;
 
   const isWished = selectedProduct ? wishlist.some((w) => w.productId === selectedProduct.id && w.colorName === selectedColor) : false;
+
+  // Current slide position for display (1-based)
+  const currentSlidePosition = hasVideo
+    ? (activeSlideIndex === -1 ? 1 : activeSlideIndex + 2) // video=1, first image=2, etc.
+    : activeSlideIndex + 1;
 
   return (
     <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
@@ -300,7 +356,7 @@ export default function ProductDetail() {
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
-              {showVideo && selectedProduct.video ? (
+              {showingVideo ? (
                 <video
                   ref={detailVideoRefMobile}
                   src={selectedProduct.video}
@@ -312,9 +368,9 @@ export default function ProductDetail() {
                 />
               ) : (
                 <img
-                  key={`main-${selectedColor}-${activeImageIndex}`}
-                  src={currentImages[activeImageIndex] || currentImages[0]}
-                  alt={`${selectedProduct.name} ${selectedColor} - imagen ${activeImageIndex + 1}`}
+                  key={`main-${selectedColor}-${imageIndex}`}
+                  src={currentImages[imageIndex] || currentImages[0]}
+                  alt={`${selectedProduct.name} ${selectedColor} - imagen ${imageIndex + 1}`}
                   className="w-full h-full object-contain transition-transform duration-700 ease-out pointer-events-none"
                 />
               )}
@@ -333,57 +389,67 @@ export default function ProductDetail() {
               </div>
 
               {/* Navigation arrows */}
-              {currentImages.length > 1 && (
+              {totalSlides > 1 && (
                 <>
                   <button
                     className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 cursor-pointer z-10"
-                    onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : currentImages.length - 1))}
+                    onClick={() => navigateSlide('prev')}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 cursor-pointer z-10"
-                    onClick={() => setActiveImageIndex((prev) => (prev < currentImages.length - 1 ? prev + 1 : 0))}
+                    onClick={() => navigateSlide('next')}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </>
               )}
 
-              {/* Image counter */}
-              {currentImages.length > 1 && !showVideo && (
+              {/* Slide counter */}
+              {totalSlides > 1 && (
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">
-                  {activeImageIndex + 1} / {currentImages.length}
+                  {currentSlidePosition} / {totalSlides}
                 </div>
-              )}
-
-              {/* Video/Image toggle button */}
-              {selectedProduct.video && (
-                <button
-                  className="absolute top-3 left-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 cursor-pointer z-10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowVideo(!showVideo);
-                  }}
-                  aria-label={showVideo ? 'Ver fotos' : 'Ver video'}
-                >
-                  {showVideo ? <ImageIcon className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </button>
               )}
             </div>
 
-            {/* Thumbnail strip */}
-            {currentImages.length > 1 && !showVideo && (
+            {/* Thumbnail strip — always visible, includes video thumbnail */}
+            {totalSlides > 1 && (
               <div className="flex gap-2 px-3 py-2.5 bg-[#0A0A0A] overflow-x-auto justify-center">
+                {/* Video thumbnail */}
+                {hasVideo && (
+                  <button
+                    key={`thumb-video`}
+                    className={`relative flex-shrink-0 w-12 h-15 rounded-lg overflow-hidden transition-all duration-300 cursor-pointer ${
+                      activeSlideIndex === -1
+                        ? 'ring-2 ring-[#E30613] scale-105 shadow-lg shadow-[#E30613]/20'
+                        : 'ring-1 ring-white/10 opacity-50 hover:opacity-100 hover:ring-white/30'
+                    }`}
+                    onClick={() => setActiveSlideIndex(-1)}
+                    aria-label="Ver video"
+                  >
+                    <img
+                      src={currentImages[0]}
+                      alt="Video"
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Play icon overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Play className="h-3.5 w-3.5 text-white fill-white" />
+                    </div>
+                  </button>
+                )}
+                {/* Image thumbnails */}
                 {currentImages.map((img, idx) => (
                   <button
                     key={`thumb-${selectedColor}-${idx}`}
                     className={`relative flex-shrink-0 w-12 h-15 rounded-lg overflow-hidden transition-all duration-300 cursor-pointer ${
-                      activeImageIndex === idx
+                      activeSlideIndex === idx
                         ? 'ring-2 ring-[#E30613] scale-105 shadow-lg shadow-[#E30613]/20'
                         : 'ring-1 ring-white/10 opacity-50 hover:opacity-100 hover:ring-white/30'
                     }`}
-                    onClick={() => setActiveImageIndex(idx)}
+                    onClick={() => setActiveSlideIndex(idx)}
                   >
                     <img
                       src={img}
@@ -569,7 +635,7 @@ export default function ProductDetail() {
           <div className="md:w-[55%] flex flex-col h-full bg-[#0A0A0A]">
             {/* Main Image / Video */}
             <div className="relative flex-1 min-h-0 overflow-hidden">
-              {showVideo && selectedProduct.video ? (
+              {showingVideo ? (
                 <video
                   ref={detailVideoRef}
                   src={selectedProduct.video}
@@ -581,65 +647,75 @@ export default function ProductDetail() {
                 />
               ) : (
                 <img
-                  key={`main-${selectedColor}-${activeImageIndex}`}
-                  src={currentImages[activeImageIndex] || currentImages[0]}
-                  alt={`${selectedProduct.name} ${selectedColor} - imagen ${activeImageIndex + 1}`}
+                  key={`main-${selectedColor}-${imageIndex}`}
+                  src={currentImages[imageIndex] || currentImages[0]}
+                  alt={`${selectedProduct.name} ${selectedColor} - imagen ${imageIndex + 1}`}
                   className="w-full h-full object-contain transition-transform duration-700 ease-out"
                 />
               )}
 
-              {/* Navigation arrows — only in photo mode */}
-              {currentImages.length > 1 && !showVideo && (
+              {/* Navigation arrows */}
+              {totalSlides > 1 && (
                 <>
                   <button
                     className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 hover:scale-110 cursor-pointer"
-                    onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : currentImages.length - 1))}
+                    onClick={() => navigateSlide('prev')}
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
                     className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 hover:scale-110 cursor-pointer"
-                    onClick={() => setActiveImageIndex((prev) => (prev < currentImages.length - 1 ? prev + 1 : 0))}
+                    onClick={() => navigateSlide('next')}
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
                 </>
               )}
 
-              {/* Image counter */}
-              {currentImages.length > 1 && !showVideo && (
+              {/* Slide counter */}
+              {totalSlides > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                  {activeImageIndex + 1} / {currentImages.length}
+                  {currentSlidePosition} / {totalSlides}
                 </div>
-              )}
-
-              {/* Video/Image toggle button */}
-              {selectedProduct.video && (
-                <button
-                  className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 hover:scale-110 cursor-pointer z-10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowVideo(!showVideo);
-                  }}
-                  aria-label={showVideo ? 'Ver fotos' : 'Ver video'}
-                >
-                  {showVideo ? <ImageIcon className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                </button>
               )}
             </div>
 
-            {/* Thumbnail strip */}
-            {currentImages.length > 1 && !showVideo && (
+            {/* Thumbnail strip — always visible, includes video thumbnail */}
+            {totalSlides > 1 && (
               <div className="flex gap-2 p-3 bg-[#0A0A0A] overflow-x-auto justify-center">
+                {/* Video thumbnail */}
+                {hasVideo && (
+                  <button
+                    key={`thumb-video`}
+                    className={`relative flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden transition-all duration-300 cursor-pointer ${
+                      activeSlideIndex === -1
+                        ? 'ring-2 ring-[#E30613] scale-105 shadow-lg shadow-[#E30613]/20'
+                        : 'ring-1 ring-white/10 opacity-50 hover:opacity-100 hover:ring-white/30'
+                    }`}
+                    onClick={() => setActiveSlideIndex(-1)}
+                    aria-label="Ver video"
+                  >
+                    <img
+                      src={currentImages[0]}
+                      alt="Video"
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Play icon overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Play className="h-5 w-5 text-white fill-white" />
+                    </div>
+                  </button>
+                )}
+                {/* Image thumbnails */}
                 {currentImages.map((img, idx) => (
                   <button
                     key={`thumb-${selectedColor}-${idx}`}
                     className={`relative flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden transition-all duration-300 cursor-pointer ${
-                      activeImageIndex === idx
+                      activeSlideIndex === idx
                         ? 'ring-2 ring-[#E30613] scale-105 shadow-lg shadow-[#E30613]/20'
                         : 'ring-1 ring-white/10 opacity-50 hover:opacity-100 hover:ring-white/30'
                     }`}
-                    onClick={() => setActiveImageIndex(idx)}
+                    onClick={() => setActiveSlideIndex(idx)}
                   >
                     <img
                       src={img}
