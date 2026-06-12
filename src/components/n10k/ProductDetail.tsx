@@ -15,31 +15,37 @@ export default function ProductDetail() {
   const addItem = useCartStore((state) => state.addItem);
   const toggleWishlistItem = useCartStore((state) => state.toggleWishlistItem);
   const wishlist = useCartStore((state) => state.wishlist);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
+  // Track whether the user has manually changed size/color (overrides defaults)
+  const [userSelectedSize, setUserSelectedSize] = useState<string | null>(null);
+  const [userSelectedColor, setUserSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [heartAnimating, setHeartAnimating] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showDescription, setShowDescription] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const [openedProductId, setOpenedProductId] = useState<string | null>(null);
 
-  const handleOpen = useCallback((open: boolean) => {
-    setDetailOpen(open);
-    if (open && selectedProduct) {
-      setSelectedSize(selectedProduct.sizes[0]);
+  // Computed defaults — first size and first color (or preselected)
+  const defaultSize = selectedProduct?.sizes[0] || '';
+  const defaultColor = preselectedColor || selectedProduct?.colors[0].name || '';
+
+  // Final selected values: user choice > default
+  const selectedSize = userSelectedSize ?? defaultSize;
+  const selectedColor = userSelectedColor ?? defaultColor;
+
+  // Reset user selections when a new product dialog opens
+  const currentProductId = isDetailOpen ? selectedProduct?.id ?? null : null;
+  if (currentProductId !== openedProductId) {
+    setOpenedProductId(currentProductId);
+    if (currentProductId !== null) {
+      setUserSelectedSize(null);
+      setUserSelectedColor(null);
       setQuantity(1);
       setHeartAnimating(false);
       setActiveImageIndex(0);
       setShowDescription(false);
     }
-  }, [setDetailOpen, selectedProduct]);
-
-  // When the detail opens or preselectedColor changes, set the active color
-  useEffect(() => {
-    if (isDetailOpen && selectedProduct) {
-      setSelectedColor(preselectedColor || selectedProduct.colors[0].name); // eslint-disable-line react-hooks/set-state-in-effect -- sync local state with store-driven dialog open
-    }
-  }, [isDetailOpen, selectedProduct, preselectedColor]);
+  }
 
   const handleAddToCart = useCallback(() => {
     if (!selectedProduct || !selectedSize || !selectedColor) return;
@@ -92,7 +98,7 @@ export default function ProductDetail() {
 
   // Reset image index when color changes
   const handleColorChange = (color: string) => {
-    setSelectedColor(color);
+    setUserSelectedColor(color);
     setActiveImageIndex(0);
   };
 
@@ -116,7 +122,7 @@ export default function ProductDetail() {
   const isWished = selectedProduct ? wishlist.some((w) => w.productId === selectedProduct.id && w.colorName === selectedColor) : false;
 
   return (
-    <Dialog open={isDetailOpen} onOpenChange={handleOpen}>
+    <Dialog open={isDetailOpen} onOpenChange={setDetailOpen}>
       <DialogContent className="!max-w-6xl !w-[98vw] !h-[95vh] !flex !flex-col bg-[#000000]/98 backdrop-blur-xl border-white/10 !p-0 !gap-0 overflow-hidden rounded-3xl">
         <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
         <DialogDescription className="sr-only">{selectedProduct.description}</DialogDescription>
@@ -217,7 +223,7 @@ export default function ProductDetail() {
                       ? 'bg-[#E30613] text-white border-[#E30613] shadow-lg shadow-[#E30613]/20'
                       : 'bg-transparent text-gray-400 border border-white/20 hover:border-[#E30613] hover:text-white'
                   }`}
-                  onClick={() => setSelectedSize(size)}
+                  onClick={() => setUserSelectedSize(size)}
                 >
                   {size}
                 </button>
@@ -467,7 +473,7 @@ export default function ProductDetail() {
                         ? 'bg-[#E30613] text-white border-[#E30613] shadow-lg shadow-[#E30613]/20'
                         : 'bg-transparent text-gray-400 border border-white/20 hover:border-[#E30613] hover:text-white'
                     }`}
-                    onClick={() => setSelectedSize(size)}
+                    onClick={() => setUserSelectedSize(size)}
                   >
                     {size}
                   </button>
