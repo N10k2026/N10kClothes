@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface Product {
   id: string;
@@ -65,133 +66,146 @@ interface CartStore {
   clearWishlist: () => void;
 }
 
-export const useCartStore = create<CartStore>((set, get) => ({
-  items: [],
-  products: [],
-  productsStatus: 'idle' as FetchStatus,
-  productsError: null,
-  isOpen: false,
-  isDetailOpen: false,
-  selectedProduct: null,
-  preselectedColor: null,
-  setOpen: (open) => set({ isOpen: open }),
-  setDetailOpen: (open) => set({ isDetailOpen: open }),
-  setSelectedProduct: (product) => set({ selectedProduct: product }),
-  setPreselectedColor: (color) => set({ preselectedColor: color }),
-  addItem: (item) => {
-    const items = get().items;
-    const existing = items.find(
-      (i) =>
-        i.product.id === item.product.id &&
-        i.selectedSize === item.selectedSize &&
-        i.selectedColor === item.selectedColor
-    );
-    if (existing) {
-      set({
-        items: items.map((i) =>
-          i.product.id === item.product.id &&
-          i.selectedSize === item.selectedSize &&
-          i.selectedColor === item.selectedColor
-            ? { ...i, quantity: i.quantity + item.quantity }
-            : i
-        ),
-      });
-    } else {
-      set({ items: [...items, item] });
-    }
-  },
-  removeItem: (productId, size, color) => {
-    set({
-      items: get().items.filter(
-        (i) =>
-          !(i.product.id === productId &&
+export const useCartStore = create<CartStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      products: [],
+      productsStatus: 'idle' as FetchStatus,
+      productsError: null,
+      isOpen: false,
+      isDetailOpen: false,
+      selectedProduct: null,
+      preselectedColor: null,
+      setOpen: (open) => set({ isOpen: open }),
+      setDetailOpen: (open) => set({ isDetailOpen: open }),
+      setSelectedProduct: (product) => set({ selectedProduct: product }),
+      setPreselectedColor: (color) => set({ preselectedColor: color }),
+      addItem: (item) => {
+        const items = get().items;
+        const existing = items.find(
+          (i) =>
+            i.product.id === item.product.id &&
+            i.selectedSize === item.selectedSize &&
+            i.selectedColor === item.selectedColor
+        );
+        if (existing) {
+          set({
+            items: items.map((i) =>
+              i.product.id === item.product.id &&
+              i.selectedSize === item.selectedSize &&
+              i.selectedColor === item.selectedColor
+                ? { ...i, quantity: i.quantity + item.quantity }
+                : i
+            ),
+          });
+        } else {
+          set({ items: [...items, item] });
+        }
+      },
+      removeItem: (productId, size, color) => {
+        set({
+          items: get().items.filter(
+            (i) =>
+              !(i.product.id === productId &&
+                i.selectedSize === size &&
+                i.selectedColor === color)
+          ),
+        });
+      },
+      updateQuantity: (productId, size, color, quantity) => {
+        if (quantity <= 0) {
+          get().removeItem(productId, size, color);
+          return;
+        }
+        set({
+          items: get().items.map((i) =>
+            i.product.id === productId &&
             i.selectedSize === size &&
-            i.selectedColor === color)
-      ),
-    });
-  },
-  updateQuantity: (productId, size, color, quantity) => {
-    if (quantity <= 0) {
-      get().removeItem(productId, size, color);
-      return;
-    }
-    set({
-      items: get().items.map((i) =>
-        i.product.id === productId &&
-        i.selectedSize === size &&
-        i.selectedColor === color
-          ? { ...i, quantity }
-          : i
-      ),
-    });
-  },
-  clearCart: () => set({ items: [] }),
-  totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
-  totalPrice: () => get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
-  // Wishlist implementation — product+color pairs
-  wishlist: [],
-  isWishlistOpen: false,
-  setWishlistOpen: (open) => set({ isWishlistOpen: open }),
-  toggleWishlistItem: (productId, colorName) => {
-    const current = get().wishlist;
-    const existing = current.find((w) => w.productId === productId && w.colorName === colorName);
-    if (existing) {
-      set({ wishlist: current.filter((w) => !(w.productId === productId && w.colorName === colorName)) });
-    } else {
-      set({ wishlist: [...current, { productId, colorName }] });
-    }
-  },
-  removeWishlistItem: (productId, colorName) => {
-    set({ wishlist: get().wishlist.filter((w) => !(w.productId === productId && w.colorName === colorName)) });
-  },
-  clearWishlist: () => set({ wishlist: [] }),
-  fetchProducts: async () => {
-    const state = get();
-    if (state.productsStatus === 'success' || fetchGuard.inProgress) return; // Already loaded or in progress
-    fetchGuard.inProgress = true;
-    set({ productsStatus: 'loading', productsError: null });
+            i.selectedColor === color
+              ? { ...i, quantity }
+              : i
+          ),
+        });
+      },
+      clearCart: () => set({ items: [] }),
+      totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      totalPrice: () => get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
+      // Wishlist implementation — product+color pairs
+      wishlist: [],
+      isWishlistOpen: false,
+      setWishlistOpen: (open) => set({ isWishlistOpen: open }),
+      toggleWishlistItem: (productId, colorName) => {
+        const current = get().wishlist;
+        const existing = current.find((w) => w.productId === productId && w.colorName === colorName);
+        if (existing) {
+          set({ wishlist: current.filter((w) => !(w.productId === productId && w.colorName === colorName)) });
+        } else {
+          set({ wishlist: [...current, { productId, colorName }] });
+        }
+      },
+      removeWishlistItem: (productId, colorName) => {
+        set({ wishlist: get().wishlist.filter((w) => !(w.productId === productId && w.colorName === colorName)) });
+      },
+      clearWishlist: () => set({ wishlist: [] }),
+      fetchProducts: async () => {
+        const state = get();
+        if (state.productsStatus === 'success' || fetchGuard.inProgress) return; // Already loaded or in progress
+        fetchGuard.inProgress = true;
+        set({ productsStatus: 'loading', productsError: null });
 
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 1500;
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 1500;
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        const res = await fetch('/api/products');
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            const res = await fetch('/api/products');
 
-        // Handle non-JSON responses (e.g., server returning HTML error pages)
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-          if (attempt < MAX_RETRIES) {
-            await new Promise(r => setTimeout(r, RETRY_DELAY * attempt));
-            continue;
+            // Handle non-JSON responses (e.g., server returning HTML error pages)
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+              if (attempt < MAX_RETRIES) {
+                await new Promise(r => setTimeout(r, RETRY_DELAY * attempt));
+                continue;
+              }
+              throw new Error('El servidor no está disponible. Intenta de nuevo más tarde.');
+            }
+
+            if (!res.ok) {
+              const errorData = await res.json().catch(() => null);
+              const msg = errorData?.error || `Error del servidor (${res.status})`;
+              throw new Error(msg);
+            }
+
+            const data = await res.json();
+            set({ products: data, productsStatus: 'success', productsError: null });
+            fetchGuard.inProgress = false;
+            return;
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Error desconocido';
+            if (attempt < MAX_RETRIES) {
+              await new Promise(r => setTimeout(r, RETRY_DELAY * attempt));
+              continue;
+            }
+            console.error('Failed to fetch products after retries:', message);
+            set({ productsStatus: 'error', productsError: message });
           }
-          throw new Error('El servidor no está disponible. Intenta de nuevo más tarde.');
         }
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => null);
-          const msg = errorData?.error || `Error del servidor (${res.status})`;
-          throw new Error(msg);
-        }
-
-        const data = await res.json();
-        set({ products: data, productsStatus: 'success', productsError: null });
         fetchGuard.inProgress = false;
-        return;
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Error desconocido';
-        if (attempt < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, RETRY_DELAY * attempt));
-          continue;
-        }
-        console.error('Failed to fetch products after retries:', message);
-        set({ productsStatus: 'error', productsError: message });
-      }
+      },
+    }),
+    {
+      name: 'n10k-store', // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // Only persist cart items and wishlist — not UI state or products
+      partialize: (state) => ({
+        items: state.items,
+        wishlist: state.wishlist,
+      }),
     }
-
-    fetchGuard.inProgress = false;
-  },
-}));
+  )
+);
 
 /** Derived selector: total cart item count */
 export const selectTotalItems = (state: CartStore) =>

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface User {
   id: string;
@@ -22,75 +23,72 @@ interface AuthStore {
   checkSession: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
-  user: null,
-  isAuthModalOpen: false,
-  authMode: 'login',
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      isAuthModalOpen: false,
+      authMode: 'login',
 
-  login: async (email: string, password: string) => {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) return false;
-      const data = await res.json();
-      localStorage.setItem('n10k_user_id', data.user.id);
-      set({ user: data.user, isAuthModalOpen: false });
-      return true;
-    } catch {
-      return false;
+      login: async (email: string, password: string) => {
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+          if (!res.ok) return false;
+          const data = await res.json();
+          set({ user: data.user, isAuthModalOpen: false });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      register: async (name: string, email: string, password: string, phone?: string) => {
+        try {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, phone }),
+          });
+          if (!res.ok) return false;
+          const data = await res.json();
+          set({ user: data.user, isAuthModalOpen: false });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      logout: () => {
+        set({ user: null, isAuthModalOpen: false, authMode: 'login' });
+      },
+
+      updateProfile: (data: Partial<User>) => {
+        const current = get().user;
+        if (current) {
+          set({ user: { ...current, ...data } });
+        }
+      },
+
+      setAuthModalOpen: (open) => set({ isAuthModalOpen: open }),
+      setAuthMode: (mode) => set({ authMode: mode }),
+
+      checkSession: async () => {
+        // Session is now persisted via zustand/middleware
+        // If user exists in localStorage, we trust it (no server session needed for now)
+        // When cloud DB is connected, this will verify against the server
+      },
+    }),
+    {
+      name: 'n10k-auth', // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // Only persist the user object — not UI state
+      partialize: (state) => ({
+        user: state.user,
+      }),
     }
-  },
-
-  register: async (name: string, email: string, password: string, phone?: string) => {
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, phone }),
-      });
-      if (!res.ok) return false;
-      const data = await res.json();
-      localStorage.setItem('n10k_user_id', data.user.id);
-      set({ user: data.user, isAuthModalOpen: false });
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  logout: () => {
-    localStorage.removeItem('n10k_user_id');
-    set({ user: null, isAuthModalOpen: false, authMode: 'login' });
-  },
-
-  updateProfile: (data: Partial<User>) => {
-    const current = get().user;
-    if (current) {
-      set({ user: { ...current, ...data } });
-    }
-  },
-
-  setAuthModalOpen: (open) => set({ isAuthModalOpen: open }),
-  setAuthMode: (mode) => set({ authMode: mode }),
-
-  checkSession: async () => {
-    const userId = localStorage.getItem('n10k_user_id');
-    if (!userId) return;
-    try {
-      const res = await fetch('/api/auth/me', {
-        headers: { 'x-user-id': userId },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        set({ user: data });
-      } else {
-        localStorage.removeItem('n10k_user_id');
-      }
-    } catch {
-      localStorage.removeItem('n10k_user_id');
-    }
-  },
-}));
+  )
+);
