@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
+  // Allow preview panel cross-origin requests
+  allowedDevOrigins: [
+    'preview-chat-74dbc56d-4ece-4b21-8aaf-46e532a4d0fb.space-z.ai',
+  ],
   // Production optimizations
   poweredByHeader: false,
   compress: true,
