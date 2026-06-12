@@ -695,6 +695,8 @@ function NewArrivalCard({
   onViewDetail: (product: Product, colorName?: string) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
 
   // GSAP entrance animation
   useEffect(() => {
@@ -716,9 +718,23 @@ function NewArrivalCard({
     });
   }, [index]);
 
+  // Play/pause video on hover
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isHovering) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [isHovering]);
+
   // Track selected color for image switching
   const [activeColor, setActiveColor] = useState(product.colors[0]?.name || '');
   const currentImages = useMemo(() => getImagesForColor(product, activeColor), [product, activeColor]);
+
+  const hasVideo = !!product.video;
 
   return (
     <div
@@ -727,15 +743,33 @@ function NewArrivalCard({
       <div
         className="orvian-card group relative overflow-hidden cursor-pointer rounded-md sm:rounded-xl"
         onClick={() => onViewDetail(product, activeColor)}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
         {/* Image fills the ENTIRE card - 4:5 aspect ratio */}
         <div className="relative aspect-[4/5] overflow-hidden rounded-md sm:rounded-xl">
+          {/* Static image - fades out when video plays on hover */}
           <img
             key={`primary-${activeColor}`}
             src={currentImages[0]}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out sm:group-hover:scale-105"
+            className={`w-full h-full object-cover transition-all duration-700 ease-out ${
+              hasVideo ? 'sm:group-hover:opacity-0 sm:group-hover:scale-105' : 'sm:group-hover:scale-105'
+            }`}
           />
+
+          {/* Video layer - plays on hover (desktop only) */}
+          {hasVideo && (
+            <video
+              ref={videoRef}
+              src={product.video}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover opacity-0 sm:group-hover:opacity-100 transition-opacity duration-700 ease-out"
+            />
+          )}
 
           {/* NEW Badge - always visible */}
           <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 flex flex-col gap-1.5 z-10">

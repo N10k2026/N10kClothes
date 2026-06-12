@@ -6,6 +6,7 @@ type DbProductWithRelations = {
   originalPrice: number | null;
   image: string;
   description: string;
+  video: string | null;
   isNew: boolean;
   isBestSeller: boolean;
   images: { url: string; colorName: string | null; sortOrder: number }[];
@@ -47,5 +48,6 @@ export function transformProduct(dbProduct: DbProductWithRelations) {
     description: dbProduct.description,
     isNew: dbProduct.isNew,
     isBestSeller: dbProduct.isBestSeller,
+    video: dbProduct.video ?? undefined,
   };
 }

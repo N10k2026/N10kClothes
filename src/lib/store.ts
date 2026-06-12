@@ -16,6 +16,8 @@ export interface Product {
   description: string;
   isNew?: boolean;
   isBestSeller?: boolean;
+  /** Product video URL for hover/preview playback */
+  video?: string;
 }
 
 export interface CartItem {

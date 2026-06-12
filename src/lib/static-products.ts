@@ -20,6 +20,7 @@ export type StaticProduct = {
   description: string;
   isNew: boolean;
   isBestSeller: boolean;
+  video?: string;
 };
 
 export const staticProducts: StaticProduct[] = [
@@ -155,6 +156,7 @@ export const staticProducts: StaticProduct[] = [
     description: 'Hoodie oversize para caballero que no pide permiso. Algodón premium 80/20 con forro polar, logo N10K bordado y actitud que se siente. 4 colores, cero miedo.',
     isNew: true,
     isBestSeller: true,
+    video: '/videos/hoodie-bold.mp4',
   },
   {
     id: 'sweater-after-dark',

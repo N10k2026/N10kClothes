@@ -4,7 +4,7 @@ import { useCartStore, Product } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { X, ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Play, ImageIcon } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 export default function ProductDetail() {
@@ -22,6 +22,9 @@ export default function ProductDetail() {
   const [heartAnimating, setHeartAnimating] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showDescription, setShowDescription] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const detailVideoRef = useRef<HTMLVideoElement>(null);
+  const detailVideoRefMobile = useRef<HTMLVideoElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [openedProductId, setOpenedProductId] = useState<string | null>(null);
 
@@ -44,8 +47,21 @@ export default function ProductDetail() {
       setHeartAnimating(false);
       setActiveImageIndex(0);
       setShowDescription(false);
+      setShowVideo(false);
     }
   }
+
+  // Auto-play video when showing in detail, pause when hiding
+  useEffect(() => {
+    const videoEl = showVideo ? detailVideoRef.current : null;
+    const videoElMobile = showVideo ? detailVideoRefMobile.current : null;
+    if (videoEl) videoEl.play().catch(() => {});
+    if (videoElMobile) videoElMobile.play().catch(() => {});
+    return () => {
+      if (videoEl) { videoEl.pause(); videoEl.currentTime = 0; }
+      if (videoElMobile) { videoElMobile.pause(); videoElMobile.currentTime = 0; }
+    };
+  }, [showVideo]);
 
   const handleAddToCart = useCallback(() => {
     if (!selectedProduct || !selectedSize || !selectedColor) return;
@@ -276,12 +292,24 @@ export default function ProductDetail() {
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
-              <img
-                key={`main-${selectedColor}-${activeImageIndex}`}
-                src={currentImages[activeImageIndex] || currentImages[0]}
-                alt={`${selectedProduct.name} ${selectedColor} - imagen ${activeImageIndex + 1}`}
-                className="w-full h-full object-contain transition-transform duration-700 ease-out pointer-events-none"
-              />
+              {showVideo && selectedProduct.video ? (
+                <video
+                  ref={detailVideoRefMobile}
+                  src={selectedProduct.video}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <img
+                  key={`main-${selectedColor}-${activeImageIndex}`}
+                  src={currentImages[activeImageIndex] || currentImages[0]}
+                  alt={`${selectedProduct.name} ${selectedColor} - imagen ${activeImageIndex + 1}`}
+                  className="w-full h-full object-contain transition-transform duration-700 ease-out pointer-events-none"
+                />
+              )}
 
               {/* Description overlay — gradient from bottom to top, appears on long press */}
               <div
@@ -315,15 +343,29 @@ export default function ProductDetail() {
               )}
 
               {/* Image counter */}
-              {currentImages.length > 1 && (
+              {currentImages.length > 1 && !showVideo && (
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">
                   {activeImageIndex + 1} / {currentImages.length}
                 </div>
               )}
+
+              {/* Video/Image toggle button */}
+              {selectedProduct.video && (
+                <button
+                  className="absolute top-3 left-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 cursor-pointer z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowVideo(!showVideo);
+                  }}
+                  aria-label={showVideo ? 'Ver fotos' : 'Ver video'}
+                >
+                  {showVideo ? <ImageIcon className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </button>
+              )}
             </div>
 
             {/* Thumbnail strip */}
-            {currentImages.length > 1 && (
+            {currentImages.length > 1 && !showVideo && (
               <div className="flex gap-2 px-3 py-2.5 bg-[#0A0A0A] overflow-x-auto justify-center">
                 {currentImages.map((img, idx) => (
                   <button
@@ -517,17 +559,29 @@ export default function ProductDetail() {
 
           {/* RIGHT: Images + Add to Cart */}
           <div className="md:w-[55%] flex flex-col h-full bg-[#0A0A0A]">
-            {/* Main Image */}
+            {/* Main Image / Video */}
             <div className="relative flex-1 min-h-0 overflow-hidden">
-              <img
-                key={`main-${selectedColor}-${activeImageIndex}`}
-                src={currentImages[activeImageIndex] || currentImages[0]}
-                alt={`${selectedProduct.name} ${selectedColor} - imagen ${activeImageIndex + 1}`}
-                className="w-full h-full object-contain transition-transform duration-700 ease-out"
-              />
+              {showVideo && selectedProduct.video ? (
+                <video
+                  ref={detailVideoRef}
+                  src={selectedProduct.video}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <img
+                  key={`main-${selectedColor}-${activeImageIndex}`}
+                  src={currentImages[activeImageIndex] || currentImages[0]}
+                  alt={`${selectedProduct.name} ${selectedColor} - imagen ${activeImageIndex + 1}`}
+                  className="w-full h-full object-contain transition-transform duration-700 ease-out"
+                />
+              )}
 
-              {/* Navigation arrows */}
-              {currentImages.length > 1 && (
+              {/* Navigation arrows — only in photo mode */}
+              {currentImages.length > 1 && !showVideo && (
                 <>
                   <button
                     className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 hover:scale-110 cursor-pointer"
@@ -545,15 +599,29 @@ export default function ProductDetail() {
               )}
 
               {/* Image counter */}
-              {currentImages.length > 1 && (
+              {currentImages.length > 1 && !showVideo && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
                   {activeImageIndex + 1} / {currentImages.length}
                 </div>
               )}
+
+              {/* Video/Image toggle button */}
+              {selectedProduct.video && (
+                <button
+                  className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#E30613]/80 transition-all duration-300 hover:scale-110 cursor-pointer z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowVideo(!showVideo);
+                  }}
+                  aria-label={showVideo ? 'Ver fotos' : 'Ver video'}
+                >
+                  {showVideo ? <ImageIcon className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                </button>
+              )}
             </div>
 
             {/* Thumbnail strip */}
-            {currentImages.length > 1 && (
+            {currentImages.length > 1 && !showVideo && (
               <div className="flex gap-2 p-3 bg-[#0A0A0A] overflow-x-auto justify-center">
                 {currentImages.map((img, idx) => (
                   <button
