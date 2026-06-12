@@ -1,11 +1,19 @@
 'use client';
 
 import React, { useMemo, useCallback } from 'react';
-import { useCartStore, selectTotalItems } from '@/lib/store';
+import { useCartStore, selectTotalItems, Product } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Minus, Plus, ShoppingBag, Trash2, MessageCircle } from 'lucide-react';
+
+/** Get images for a given product and color name */
+function getImagesForColor(product: Product, colorName: string): string[] {
+  if (product.colorImages && product.colorImages[colorName]) {
+    return product.colorImages[colorName];
+  }
+  return product.images.length > 0 ? product.images : [product.image];
+}
 
 const CartSidebar = function CartSidebar() {
   // Zustand selectors — subscribe only to what we need
@@ -90,15 +98,20 @@ const CartSidebar = function CartSidebar() {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {items.map((item) => (
+              {items.map((item) => {
+                const colorImages = getImagesForColor(item.product, item.selectedColor);
+                const displayImage = colorImages[0] || item.product.image;
+                const colorObj = item.product.colors.find((c) => c.name === item.selectedColor);
+
+                return (
                 <div
                   key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}`}
                   className="flex gap-4 bg-[#1A1A1A] p-3 border border-white/5"
                 >
                   <div className="w-20 h-24 flex-shrink-0 overflow-hidden">
                     <img
-                      src={item.product.image}
-                      alt={item.product.name}
+                      src={displayImage}
+                      alt={`${item.product.name} — ${item.selectedColor}`}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -108,9 +121,17 @@ const CartSidebar = function CartSidebar() {
                         <h4 className="text-sm font-bold text-white line-clamp-1">
                           {item.product.name}
                         </h4>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {item.selectedSize} · {item.selectedColor}
-                        </p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          {colorObj && (
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-white/20 flex-shrink-0"
+                              style={{ backgroundColor: colorObj.hex }}
+                            />
+                          )}
+                          <span className="text-xs text-gray-500">
+                            {item.selectedSize} · {item.selectedColor}
+                          </span>
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
@@ -161,7 +182,8 @@ const CartSidebar = function CartSidebar() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             {/* Summary */}
