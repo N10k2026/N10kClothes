@@ -47,21 +47,29 @@ export default function ProductDetail() {
       setHeartAnimating(false);
       setActiveImageIndex(0);
       setShowDescription(false);
-      setShowVideo(false);
+      // Auto-play video if the product has one
+      setShowVideo(!!selectedProduct?.video);
     }
   }
 
   // Auto-play video when showing in detail, pause when hiding
   useEffect(() => {
-    const videoEl = showVideo ? detailVideoRef.current : null;
-    const videoElMobile = showVideo ? detailVideoRefMobile.current : null;
-    if (videoEl) videoEl.play().catch(() => {});
-    if (videoElMobile) videoElMobile.play().catch(() => {});
+    if (!showVideo || !isDetailOpen) return;
+    // Small delay to ensure Dialog animation completes and video element is mounted
+    const timer = setTimeout(() => {
+      const videoEl = detailVideoRef.current;
+      const videoElMobile = detailVideoRefMobile.current;
+      if (videoEl) videoEl.play().catch(() => {});
+      if (videoElMobile) videoElMobile.play().catch(() => {});
+    }, 100);
     return () => {
+      clearTimeout(timer);
+      const videoEl = detailVideoRef.current;
+      const videoElMobile = detailVideoRefMobile.current;
       if (videoEl) { videoEl.pause(); videoEl.currentTime = 0; }
       if (videoElMobile) { videoElMobile.pause(); videoElMobile.currentTime = 0; }
     };
-  }, [showVideo]);
+  }, [showVideo, isDetailOpen]);
 
   const handleAddToCart = useCallback(() => {
     if (!selectedProduct || !selectedSize || !selectedColor) return;
