@@ -438,7 +438,7 @@ export default function ProductDetail() {
                 {selectedProduct.colors.map((color) => (
                   <button
                     key={color.name}
-                    className={`group/color relative w-9 h-9 rounded-full border-2 transition-all duration-300 cursor-pointer ${
+                    className={`relative w-9 h-9 rounded-full border-2 transition-all duration-300 cursor-pointer ${
                       selectedColor === color.name
                         ? 'border-[#E30613] scale-110 shadow-lg shadow-[#E30613]/25'
                         : 'border-white/20 hover:border-white/50 hover:scale-105'
@@ -447,9 +447,7 @@ export default function ProductDetail() {
                     onClick={() => handleColorChange(color.name)}
                     title={color.name}
                   >
-                    <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 font-bold uppercase whitespace-nowrap opacity-0 group-hover/color:opacity-100 transition-opacity duration-200">
-                      {color.name}
-                    </span>
+
                   </button>
                 ))}
               </div>
