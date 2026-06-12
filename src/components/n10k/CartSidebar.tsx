@@ -27,8 +27,6 @@ const CartSidebar = function CartSidebar() {
   // Derived selector for totalItems (PERF-9)
   const totalItems = useCartStore(selectTotalItems);
   const totalPrice = useMemo(() => items.reduce((sum, i) => sum + i.product.price * i.quantity, 0), [items]);
-  const shipping = totalPrice > 50 ? 0 : 4.99;
-  const finalTotal = totalPrice + shipping;
 
   // WhatsApp number (country code + number, no + or spaces)
   const WHATSAPP_NUMBER = '584122880228';
@@ -40,8 +38,6 @@ const CartSidebar = function CartSidebar() {
       return `${i + 1}. *${item.product.name}*\n   Talla: ${item.selectedSize} | Color: ${item.selectedColor}\n   Cant: ${item.quantity} x $${item.product.price.toFixed(2)} = *$${subtotal}*`;
     });
 
-    const shippingText = shipping === 0 ? 'GRATIS' : `$${shipping.toFixed(2)}`;
-
     const message = [
       `*NUEVO PEDIDO - N10K Clothes*`,
       ``,
@@ -49,14 +45,14 @@ const CartSidebar = function CartSidebar() {
       ``,
       `----------------------------`,
       `Subtotal: $${totalPrice.toFixed(2)}`,
-      `Envio: ${shippingText}`,
-      `*Total: $${finalTotal.toFixed(2)}*`,
+      `Envio: Cobro a destino MRW`,
+      `*Total: $${totalPrice.toFixed(2)}*`,
       ``,
       `Gracias por comprar con N10K!`,
     ].join('\n');
 
     return encodeURIComponent(message);
-  }, [items, totalPrice, shipping, finalTotal]);
+  }, [items, totalPrice]);
 
   const handleWhatsAppCheckout = useCallback(() => {
     const message = buildWhatsAppMessage();
@@ -194,21 +190,19 @@ const CartSidebar = function CartSidebar() {
                   <span className="text-gray-400">Subtotal</span>
                   <span className="text-white font-bold">${totalPrice.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm items-start">
                   <span className="text-gray-400">Envío</span>
-                  <span className={`font-bold ${shipping === 0 ? 'text-green-500' : 'text-white'}`}>
-                    {shipping === 0 ? 'GRATIS' : `$${shipping.toFixed(2)}`}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-white font-bold text-xs">Cobro a destino</span>
+                    <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-gray-500">MRW · Solo Venezuela</span>
+                    </div>
+                  </div>
                 </div>
-                {shipping > 0 && (
-                  <p className="text-[10px] text-gray-600">
-                    Envío gratis en compras mayores a $50.00
-                  </p>
-                )}
                 <Separator className="bg-white/10" />
                 <div className="flex justify-between">
                   <span className="text-white font-bold text-lg">Total</span>
-                  <span className="text-[#E30613] font-black text-xl">${finalTotal.toFixed(2)}</span>
+                  <span className="text-[#E30613] font-black text-xl">${totalPrice.toFixed(2)}</span>
                 </div>
               </div>
 
