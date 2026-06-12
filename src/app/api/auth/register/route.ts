@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { hashPassword } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,11 +19,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    // Database not available on Vercel serverless - registration requires persistent storage
-    return NextResponse.json(
-      { error: 'Registration is temporarily unavailable. Please try again later.' },
-      { status: 503 }
-    );
+    const existing = await db.user.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const user = await db.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt.toISOString(),
+      },
+    });
   } catch (error) {
     console.error('Register error:', error);
     return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
