@@ -14,6 +14,13 @@ import InteractiveBackground from '@/components/n10k/InteractiveBackground';
 import FloatingNavBar from '@/components/n10k/FloatingNavBar';
 import AuthModal from '@/components/n10k/AuthModal';
 import { Marquee } from '@/components/n10k/TextAnimations';
+import dynamic from 'next/dynamic';
+
+// Lazy-load Plasma WebGL component — requires client-side only
+const Plasma = dynamic(() => import('@/components/n10k/Plasma'), {
+  ssr: false,
+  loading: () => null,
+});
 import { useAuthStore } from '@/lib/auth-store';
 
 export default function Home() {
@@ -65,12 +72,29 @@ export default function Home() {
             />
           </section>
 
-          <AboutSection />
+          {/* Red glow container — extends Plasma across About + Newsletter */}
+          <div className="relative overflow-hidden">
+            {/* Shared Plasma background across both sections */}
+            <div className="absolute inset-0 z-0">
+              <Plasma
+                color="#E30613"
+                speed={0.5}
+                direction="forward"
+                scale={1.6}
+                opacity={0.55}
+                mouseInteractive={true}
+              />
+            </div>
+            {/* Red glow gradient overlay spanning both sections */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/80 via-[#000000]/30 to-[#000000]/60 pointer-events-none z-[1]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#E30613]/8 via-transparent to-[#E30613]/8 pointer-events-none z-[1]" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-[#E30613]/6 rounded-full blur-[200px] pointer-events-none z-[1]" />
 
-          {/* Section Divider */}
-          <div className="section-divider max-w-4xl mx-auto my-0" />
-
-          <NewsletterSection />
+            <div className="relative z-[2]">
+              <AboutSection />
+              <NewsletterSection />
+            </div>
+          </div>
         </main>
         <Footer />
       </div>

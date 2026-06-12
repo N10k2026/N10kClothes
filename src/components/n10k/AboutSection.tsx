@@ -59,7 +59,7 @@ export default function AboutSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} id="about" className="py-5 sm:py-20 px-4 relative overflow-hidden bg-[#000000] n10k-pattern-bg">
+    <section ref={sectionRef} id="about" className="py-5 sm:py-20 px-4 relative overflow-hidden bg-transparent">
       {/* ===== Moving Background Text (Orvian-style) ===== */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         {/* Row 1 - scrolling right */}
@@ -120,8 +120,8 @@ export default function AboutSection() {
         </div>
       </div>
 
-      {/* Gradient overlay on top of moving text */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#000000] via-[#000000]/70 to-[#000000]" />
+      {/* Gradient overlay on top of moving text — lighter to let Plasma show through */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#000000]/40 to-transparent" />
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E30613]/3 rounded-full blur-[200px]" />
 
       <div className="max-w-7xl mx-auto relative z-10">

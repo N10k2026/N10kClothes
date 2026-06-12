@@ -4,15 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Instagram, MessageCircle } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
 import { SplitChars, BlurFadeUp, BlurIn } from '@/components/n10k/TextAnimations';
 import { gsap, ScrollTrigger } from '@/lib/gsap-init';
-
-// Lazy-load Plasma WebGL component — ~30KB saved from initial bundle
-const Plasma = dynamic(() => import('@/components/n10k/Plasma'), {
-  ssr: false,
-  loading: () => null,
-});
 
 export default function NewsletterSection() {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -42,20 +35,8 @@ export default function NewsletterSection() {
   }, []);
 
   return (
-    <section id="newsletter" className="py-5 sm:py-24 md:py-32 px-4 relative overflow-hidden bg-[#000000] n10k-pattern-bg">
-      {/* ===== Plasma Background Layer ===== */}
-      <div className="absolute inset-0 z-0">
-        <Plasma
-          color="#E30613"
-          speed={0.5}
-          direction="forward"
-          scale={1.6}
-          opacity={0.55}
-          mouseInteractive={true}
-        />
-      </div>
-
-      {/* ===== LAYER 1: Moving Background Text ===== */}
+    <section id="newsletter" className="py-5 sm:py-24 md:py-32 px-4 relative overflow-hidden bg-transparent">
+      {/* ===== Moving Background Text ===== */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         {/* Row 1 - scrolling right */}
         <div className="absolute top-[5%] left-0 w-full">
@@ -134,11 +115,8 @@ export default function NewsletterSection() {
         </div>
       </div>
 
-      {/* ===== LAYER 2: Gradient Overlay (over plasma + marquee) ===== */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/60 via-[#000000]/40 to-[#000000]/60" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#E30613]/8 via-transparent to-[#E30613]/8" />
-      {/* Radial spotlight */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#E30613]/6 rounded-full blur-[200px]" />
+      {/* ===== Gradient Overlay (lighter — Plasma comes from parent container) ===== */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#000000]/20 to-transparent" />
 
       {/* ===== LAYER 3: Content ===== */}
       <div className="max-w-2xl mx-auto text-center relative z-10">
