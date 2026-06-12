@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Product, useCartStore, categories, FetchStatus, fetchInProgress } from '@/lib/store';
+import { Product, useCartStore, categories, FetchStatus, fetchGuard } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
 import { Heart, ShoppingBag, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
@@ -30,7 +30,7 @@ export default function ProductGrid() {
   // Retry handler — resets status and refetches
   const handleRetry = useCallback(() => {
     useCartStore.setState({ productsStatus: 'idle' as FetchStatus, productsError: null });
-    fetchInProgress = false; // Reset guard so fetch can run again
+    fetchGuard.inProgress = false; // Reset guard so fetch can run again
     fetchProducts();
   }, [fetchProducts]);
 

@@ -31,8 +31,8 @@ export interface WishlistItem {
 
 export const categories = ["Todos", "Hoodies", "Suéters", "Franelas", "Shorts"];
 
-// Guard to prevent concurrent fetch calls
-export let fetchInProgress = false;
+// Guard to prevent concurrent fetch calls (mutable object so importers can modify)
+export const fetchGuard = { inProgress: false };
 
 export type FetchStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -147,8 +147,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
   clearWishlist: () => set({ wishlist: [] }),
   fetchProducts: async () => {
     const state = get();
-    if (state.productsStatus === 'success' || fetchInProgress) return; // Already loaded or in progress
-    fetchInProgress = true;
+    if (state.productsStatus === 'success' || fetchGuard.inProgress) return; // Already loaded or in progress
+    fetchGuard.inProgress = true;
     set({ productsStatus: 'loading', productsError: null });
 
     const MAX_RETRIES = 3;
@@ -176,7 +176,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
         const data = await res.json();
         set({ products: data, productsStatus: 'success', productsError: null });
-        fetchInProgress = false;
+        fetchGuard.inProgress = false;
         return;
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Error desconocido';
@@ -189,7 +189,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       }
     }
 
-    fetchInProgress = false;
+    fetchGuard.inProgress = false;
   },
 }));
 

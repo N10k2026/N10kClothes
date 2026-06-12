@@ -10,19 +10,20 @@ import { gsap, ScrollTrigger, SplitText } from '@/lib/gsap-init';
 export function SplitChars({
   text,
   className = '',
-  tag: Tag = 'h2',
+  tag = 'h2',
   staggerDelay = 0.04,
   threshold = 0.2,
   style,
 }: {
   text: string;
   className?: string;
-  tag?: string;
+  tag?: keyof React.JSX.IntrinsicElements;
   staggerDelay?: number;
   threshold?: number;
   style?: React.CSSProperties;
 }) {
   const ref = useRef<HTMLElement>(null);
+  const Tag = tag;
 
   useEffect(() => {
     if (!ref.current) return;
@@ -58,10 +59,8 @@ export function SplitChars({
     return () => ctx.revert();
   }, [staggerDelay, threshold]);
 
-  return (
-    <Tag className={className} style={style} aria-label={text}>
-      <span ref={ref}>{text}</span>
-    </Tag>
+  return React.createElement(Tag, { className, style, 'aria-label': text },
+    React.createElement('span', { ref }, text)
   );
 }
 
@@ -71,19 +70,20 @@ export function SplitChars({
 export function SplitWords({
   text,
   className = '',
-  tag: Tag = 'p',
+  tag = 'p',
   staggerDelay = 0.06,
   threshold = 0.2,
   style,
 }: {
   text: string;
   className?: string;
-  tag?: string;
+  tag?: keyof React.JSX.IntrinsicElements;
   staggerDelay?: number;
   threshold?: number;
   style?: React.CSSProperties;
 }) {
   const ref = useRef<HTMLElement>(null);
+  const Tag = tag;
 
   useEffect(() => {
     if (!ref.current) return;
@@ -116,10 +116,8 @@ export function SplitWords({
     return () => ctx.revert();
   }, [staggerDelay, threshold]);
 
-  return (
-    <Tag className={className} style={style} aria-label={text}>
-      <span ref={ref}>{text}</span>
-    </Tag>
+  return React.createElement(Tag, { className, style, 'aria-label': text },
+    React.createElement('span', { ref }, text)
   );
 }
 

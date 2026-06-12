@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function InteractiveBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,24 +33,6 @@ export default function InteractiveBackground() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
     };
-  }, []);
-
-  // Use IntersectionObserver to pause animation when off-screen
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        isVisibleRef.current = entry.isIntersecting;
-        // Resume animation loop when becoming visible again
-        if (entry.isIntersecting && !rafRef.current) {
-          rafRef.current = requestAnimationFrame(animate);
-        }
-      },
-      { threshold: 0 }
-    );
-    io.observe(containerRef.current);
-    return () => io.disconnect();
   }, []);
 
   // Animation loop using refs + direct DOM manipulation (no setState!)
@@ -94,6 +76,30 @@ export default function InteractiveBackground() {
       rafRef.current = requestAnimationFrame(animate);
     };
 
+    // Use IntersectionObserver to pause animation when off-screen
+    if (containerRef.current) {
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          isVisibleRef.current = entry.isIntersecting;
+          // Resume animation loop when becoming visible again
+          if (entry.isIntersecting && !rafRef.current) {
+            rafRef.current = requestAnimationFrame(animate);
+          }
+        },
+        { threshold: 0 }
+      );
+      io.observe(containerRef.current);
+
+      // Start animation
+      rafRef.current = requestAnimationFrame(animate);
+
+      return () => {
+        io.disconnect();
+        cancelAnimationFrame(rafRef.current);
+      };
+    }
+
+    // Fallback: start animation even without observer
     rafRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
