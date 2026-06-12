@@ -183,7 +183,7 @@ export default function NewsletterSection() {
                   rel="noopener noreferrer"
                 >
                   <Instagram className="h-3.5 w-3.5 sm:h-5 sm:w-5 mr-1.5" />
-                  Follow Instagram
+                  Instagram
                 </a>
               </Button>
               <Button
