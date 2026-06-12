@@ -83,16 +83,17 @@ const CartSidebar = function CartSidebar() {
             <div className="w-20 h-20 bg-[#1A1A1A] rounded-full flex items-center justify-center mb-4">
               <ShoppingBag className="h-8 w-8 text-gray-600" />
             </div>
-            <p className="text-gray-400 font-bold text-lg mb-2">Tu carrito está vacío</p>
+            <p className="text-gray-400 font-bold text-lg mb-1.5">Tu carrito está vacío</p>
             <p className="text-gray-600 text-sm text-center mb-6">
-              Explora nuestra colección y encuentra tu próximo look N10K
+              <span className="block">Explora nuestras colecciones y</span>
+              <span className="block">encuentra tu próximo look N10K</span>
             </p>
             <Button
-              className="bg-[#E30613] hover:bg-[#ff2d34] text-white font-montserrat-bold rounded-none"
+              className="bg-[#E30613] hover:bg-[#ff2d34] text-white font-bold text-sm px-6 py-2.5 rounded-full tracking-wide"
               onClick={() => setOpen(false)}
               asChild
             >
-              <a href="#collection">Ver Colección</a>
+              <a href="#collection">Colección</a>
             </Button>
           </div>
         ) : (
