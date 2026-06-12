@@ -110,6 +110,7 @@ export const staticProducts: StaticProduct[] = [
     description: 'Shorts deportivos para caballero con logo N10K "LIVE LIMITLESS". Tela suave y ligera con cintura elástica y cordón ajustable. Disponible en 7 colores — frescura y actitud sin límites.',
     isNew: true,
     isBestSeller: true,
+    video: '/videos/shorts-breeze.mp4',
   },
   {
     id: 'hoodie-bold',
